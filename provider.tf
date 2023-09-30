@@ -1,10 +1,10 @@
 provider "oci" {
   # Cloud Shell Authentiation
-  # auth = "InstancePrincipal"
-  # region = var.region
+  auth = "InstancePrincipal"
+  region = var.region
 
   # Local Shell Authentication
-  config_file_profile=var.config_file_profile
+  # config_file_profile=var.config_file_profile
 }
 
 variable "region" {}
