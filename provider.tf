@@ -12,6 +12,13 @@ variable "tenancy_id" {}
 variable "config_file_profile" {
   default = "DEFAULT"
 }
+variable "namespace" {
+  default = ""
+}
+
+terraform {
+  backend "s3" {}
+}
 
 data "oci_identity_availability_domains" "ads" {
   compartment_id = var.tenancy_id
