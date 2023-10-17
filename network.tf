@@ -127,3 +127,56 @@ resource "oci_core_subnet" "dmz" {
     prohibit_public_ip_on_vnic = false
 }
 
+# Network Security Group
+resource "oci_core_network_security_group" "minecraft_app" {
+    # Required
+    compartment_id             = oci_identity_compartment.minecraft.id
+    vcn_id                     = oci_core_vcn.minecraft.id
+    # Optional
+    display_name   = "minecraft-app-nsg"
+}
+
+resource "oci_core_network_security_group" "minecraft_dmz" {
+    # Required
+    compartment_id             = oci_identity_compartment.minecraft.id
+    vcn_id                     = oci_core_vcn.minecraft.id
+    # Optional
+    display_name   = "minecraft-dmz-nsg"
+}
+
+# Network Security Group Rules
+resource "oci_core_network_security_group_security_rule" "minecraft_from_dmz" {
+    # Required
+    network_security_group_id = oci_core_network_security_group.minecraft_app.id
+    direction         = "INGRESS"
+    protocol          = "6"
+    # Optional
+    description       = "minecraft-from-dmz"
+    destination       = "192.168.1.0/24" # App
+    destination_type  = "CIDR_BLOCK"
+    source            = "192.168.0.0/24" # DMZ
+    tcp_options {
+        destination_port_range {
+        min = "25565"
+        max = "25565"
+        }
+    }
+}
+
+resource "oci_core_network_security_group_security_rule" "minecraft_from_public" {
+    # Required
+    network_security_group_id = oci_core_network_security_group.minecraft_dmz.id
+    direction         = "INGRESS"
+    protocol          = "6"
+    # Optional
+    description       = "minecraft-from-public"
+    destination       = "192.168.0.0/24" # DMZ
+    destination_type  = "CIDR_BLOCK"
+    source            = "0.0.0.0/0" # Public
+    tcp_options {
+        destination_port_range {
+        min = "25565"
+        max = "25565"
+        }
+    }
+}
