@@ -153,7 +153,7 @@ resource "oci_core_network_security_group_security_rule" "minecraft_from_dmz" {
     # Optional
     description       = "minecraft-from-dmz"
     destination       = "192.168.1.0/24" # App
-    destination_type  = "CIDR_BLOCK"
+    # destination_type  = "CIDR_BLOCK" # Optional on Ingress
     source            = "192.168.0.0/24" # DMZ
     tcp_options {
         destination_port_range {
@@ -171,7 +171,7 @@ resource "oci_core_network_security_group_security_rule" "minecraft_from_public"
     # Optional
     description       = "minecraft-from-public"
     destination       = "192.168.0.0/24" # DMZ
-    destination_type  = "CIDR_BLOCK"
+    # destination_type  = "CIDR_BLOCK" # Optional on Ingress
     source            = "0.0.0.0/0" # Public
     tcp_options {
         destination_port_range {
