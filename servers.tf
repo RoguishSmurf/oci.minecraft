@@ -49,6 +49,8 @@ resource "oci_core_instance" "bastion" {
     lifecycle {
       ignore_changes = [source_details, metadata]
     }
+
+    defined_tags = { "minecraft.role" = "loadbalancer" }
 }
 
 output "bastion_public_ip" {
@@ -92,14 +94,6 @@ resource "oci_core_instance" "minecraft" {
     lifecycle {
       ignore_changes = [source_details, metadata]
     }
-}
 
-resource "ansible_host" "bastion" {
-  name   = oci_core_instance.bastion.public_ip
-  groups = ["bastion", "loadbalancer"]
-}
-
-resource "ansible_host" "minecraft" {
-  name   = oci_core_instance.bastion.private_ip
-  groups = ["minecraft", "apps"]
+	defined_tags = { "minecraft.role" = "minecraft" }
 }
