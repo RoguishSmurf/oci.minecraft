@@ -93,3 +93,13 @@ resource "oci_core_instance" "minecraft" {
       ignore_changes = [source_details, metadata]
     }
 }
+
+resource "ansible_host" "bastion" {
+  name   = oci_core_instance.bastion.public_ip
+  groups = ["bastion", "loadbalancer"]
+}
+
+resource "ansible_host" "minecraft" {
+  name   = oci_core_instance.bastion.private_ip
+  groups = ["minecraft", "apps"]
+}

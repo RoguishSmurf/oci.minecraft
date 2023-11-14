@@ -1,0 +1,11 @@
+- name: Bastion Test
+  hosts: bastion
+  tasks:
+    - name: Ping Bastion
+      ansible.builtin.ping:
+
+- name: Minecraft Test
+  hosts: minecraft
+  tasks:
+    - name: Ping Minecraft
+      ansible.builtin.ping:
