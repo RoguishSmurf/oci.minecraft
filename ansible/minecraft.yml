@@ -1,67 +1,115 @@
 ---
-- name: Install and Configure Minecraft
+- name: Install Software
   hosts: minecraft#role=minecraft
   vars_files:
-    - variables.yml 
+    - vars/minecraft_vars.yml 
   tasks:
-    - name: Install Packages
-      ansible.builtin.package:
-        name: "{{ item }}"
-        state: latest
-      loop: "{{ packages }}"
-      become: yes
-    - name: Verify JDK Version
-      ansible.builtin.command: java --version
-      register: java_version
-      changed_when: false
-    - name: Report JDK Version
-      ansible.builtin.debug: 
-        var: java_version.stdout_lines[0]
-    - name: Create Server Directories
-      ansible.builtin.file:
-        path: "{{ server_base }}/{{ item }}"
-        state: directory
-      loop: "{{ server_dirs }}"
-    - name: Download Paper
-      ansible.builtin.get_url:
-        url: "{{ paper_url }}"
-        dest: "{{ server_base }}/server/{{ paper_jar }}"
-        checksum: "{{ paper_checksum }}"
-    - name: Download mcrcon
-      ansible.builtin.get_url:
-        url: "{{ mcrcon_url }}"
-        dest: "{{ server_base }}/tools/{{ mcrcon_tarball }}"
-        checksum: "{{ mcrcon_checksum }}"
-    - name: Extract mcrcon
-      ansible.builtin.unarchive:
-        src: "{{ server_base }}/tools/{{ mcrcon_tarball }}"
-        dest: "{{ server_base }}/tools/"
-        remote_src: yes
-    - name: Create Minecraft server.properties
-      ansible.builtin.template:
-        src: templates/server.properties.j2
-        dest: "{{ server_base }}/server/server.properties"
-    - name: Agree to EULA
-      ansible.builtin.template:
-        src: templates/eula.txt.j2
-        dest:  "{{ server_base }}/server/eula.txt"
-    - name: Create systemd Unit File
-      ansible.builtin.template:
-        src: templates/systemd.minecraft.j2
-        dest: /etc/systemd/user/minecraft.service
-      become: yes
-    - name: Enable systemd Minecraft Service
-      ansible.builtin.command: systemctl --user enable minecraft.service
-      changed_when: false
-    - name: Start Minecraft
-      ansible.builtin.systemd:
-        name: minecraft.service
-        state: started
-        scope: user
-    - name: Open Firewall
-      ansible.posix.firewalld:
-        port: 25565/tcp
-        permanent: true
-        state: enabled
-      become: yes
-      
+  - name: Install Packages
+    ansible.builtin.package:
+      name: "{{ item }}"
+      state: latest
+    loop: "{{ packages }}"
+    become: yes
+  - name: Verify JDK Version
+    ansible.builtin.command: java --version
+    register: java_version
+    changed_when: false
+  - name: Report JDK Version
+    ansible.builtin.debug: 
+      var: java_version.stdout_lines[0]
+  - name: Create Server Directories
+    ansible.builtin.file:
+      path: "{{ server_base }}/{{ item }}"
+      state: directory
+    loop: "{{ server_dirs }}"
+  - name: Download Paper
+    ansible.builtin.get_url:
+      url: "{{ paper_url }}"
+      dest: "{{ server_base }}/server/{{ paper_jar }}"
+      checksum: "{{ paper_checksum }}"
+  - name: Download mcrcon
+    ansible.builtin.get_url:
+      url: "{{ mcrcon_url }}"
+      dest: "{{ server_base }}/tools/{{ mcrcon_tarball }}"
+      checksum: "{{ mcrcon_checksum }}"
+  - name: Extract mcrcon
+    ansible.builtin.unarchive:
+      src: "{{ server_base }}/tools/{{ mcrcon_tarball }}"
+      dest: "{{ server_base }}/tools/"
+      remote_src: yes
+    
+- name: Set Config Files
+  hosts: minecraft#role=minecraft
+  vars_files:
+    - vars/minecraft_vars.yml 
+  tasks:
+  - name: server.properties - Add rcon port
+    ansible.builtin.lineinfile:
+      path: "{{ server_base }}/server/server.properties"
+      line: "rcon.port={{ rcon_port }}"
+      state: present
+  - name: server.properties - Add rcon pwd
+    ansible.builtin.lineinfile:
+      path: "{{ server_base }}/server/server.properties"
+      line: "rcon.password={{ rcon_pwd }}"
+      state: present
+  - name: server.properties - Enable rcon
+    ansible.builtin.lineinfile:
+      path: "{{ server_base }}/server/server.properties"
+      line: "enable-rcon=true"
+      state: present
+  - name: Agree to EULA
+    ansible.builtin.template:
+      src: templates/eula.txt.j2
+      dest:  "{{ server_base }}/server/eula.txt"
+    
+- name: Configure systemd and Firewall
+  hosts: minecraft#role=minecraft
+  vars_files:
+    - vars/minecraft_vars.yml 
+  tasks:
+  - name: Create systemd Unit File
+    ansible.builtin.template:
+      src: templates/systemd.minecraft.j2
+      dest: /etc/systemd/user/minecraft.service
+    become: yes
+  - name: Enable systemd Minecraft Service
+    ansible.builtin.service: 
+      name: minecraft.service
+      scope: user
+      enabled: yes
+    changed_when: false
+  - name: Start Minecraft
+    ansible.builtin.systemd:
+      name: minecraft.service
+      state: started
+      scope: user
+  - name: Open Firewall
+    ansible.posix.firewalld:
+      port: "{{ minecraft_port }}/tcp"
+      permanent: true
+      state: enabled
+      immediate: yes
+    become: yes
+
+- name: Schedule Backups
+  hosts: minecraft#role=minecraft
+  vars_files:
+    - vars/minecraft_vars.yml 
+  tasks:
+  - name: Create Backup Script
+    ansible.builtin.template:
+      src: templates/backup.sh.j2
+      dest: "{{ server_base }}/backup/backup.sh"
+      mode: '0755'
+  - name: Schedule Nightly Backups
+    ansible.builtin.cron:
+      name: "Backup Minecraft Server"
+      minute: "0"
+      hour: "23"
+      job: "{{ server_base }}/backup/backup.sh"
+  - name: Create Console Script
+    ansible.builtin.template:
+      src: templates/console.sh.j2
+      dest: "{{ server_base }}/console.sh"
+      mode: '0755'

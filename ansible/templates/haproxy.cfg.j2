@@ -1,0 +1,35 @@
+global
+    log         127.0.0.1 local2
+
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon
+    stats socket /var/lib/haproxy/stats
+
+defaults
+    mode                    tcp
+    log                     global
+    option                  dontlognull
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+
+frontend minecraft
+    bind                *:{{ minecraft_port }}
+    default_backend     minecraft
+
+backend minecraft
+    balance roundrobin
+{% for i in groups['minecraft#role=minecraft'] %}    
+    server mc{{ loop.index }} {{ i }}:{{ minecraft_port }} check
+{% endfor %}

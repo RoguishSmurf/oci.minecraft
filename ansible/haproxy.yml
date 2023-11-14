@@ -1,0 +1,54 @@
+---
+- name: Install and Configure HAProxy
+  hosts: minecraft#role=loadbalancer
+  become: yes
+  vars_files:
+    - vars/haproxy_vars.yml 
+  
+  pre_tasks:
+  - name: Discover Minecraft Servers
+    set_fact: 
+      backend_servers: "{{ groups['minecraft#role=minecraft'] }}"
+  - name: Report Backend Servers
+    ansible.builtin.debug:
+      msg: "{{ item }}"
+    loop: "{{ backend_servers }}"
+
+  tasks:
+  - name: Install HAProxy
+    ansible.builtin.package:
+      name: "{{ item }}"
+      state: latest
+    loop: "{{ packages }}"
+  - name: Configure HAProxy
+    ansible.builtin.template:
+      src: templates/haproxy.cfg.j2
+      dest: /etc/haproxy/haproxy.cfg
+      mode: 0644
+      validate: haproxy -f %s -c -q
+    notify: 
+      - restart haproxy
+    become: yes
+  - name: Set SELinux Boolean for HAProxy
+    ansible.builtin.seboolean:
+      name: haproxy_connect_any
+      state: true
+      persistent: true
+  - name: Ensure HAProxy is started and enabled on boot.
+    ansible.builtin.systemd: 
+      name: haproxy 
+      state: started 
+      enabled: yes
+  - name: Open Firewall
+    ansible.posix.firewalld:
+      port: "{{ minecraft_port }}/tcp"
+      permanent: true
+      state: enabled
+      immediate: yes
+    become: yes
+
+  handlers:
+  - name: restart haproxy
+    ansible.builtin.systemd:
+      name: haproxy
+      state: restarted

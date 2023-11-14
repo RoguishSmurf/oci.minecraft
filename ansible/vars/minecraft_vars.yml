@@ -1,5 +1,6 @@
 packages: ["jdk-17-headless"]
 linux_user: opc
+minecraft_port: 25565
 server_base: "/home/{{ linux_user }}/minecraft"
 server_dirs: ["server", "tools", "backup", "logs"]
 paper_jar: paper.jar
