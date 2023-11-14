@@ -49,6 +49,8 @@ resource "oci_core_instance" "bastion" {
     lifecycle {
       ignore_changes = [source_details, metadata]
     }
+
+    defined_tags = { "minecraft.role" = "loadbalancer" }
 }
 
 output "bastion_public_ip" {
@@ -92,4 +94,6 @@ resource "oci_core_instance" "minecraft" {
     lifecycle {
       ignore_changes = [source_details, metadata]
     }
+
+    defined_tags = { "minecraft.role" = "minecraft" }
 }
