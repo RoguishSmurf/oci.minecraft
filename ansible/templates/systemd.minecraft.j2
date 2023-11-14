@@ -1,0 +1,13 @@
+[Unit]
+Description=Minecraft Server
+After=network.target
+
+[Service]
+WorkingDirectory=/home/{{ linux_user }}/minecraft/server
+ExecStart=/usr/bin/java -Xmx4096M -Xms2048M -jar {{ paper_jar }} nogui
+ExecStop=/home/{{ linux_user }}/minecraft/tools/mcrcon -H localhost -P {{ rcon_port }} -p {{ rcon_pwd }} stop
+Restart=on-failure
+StandardOutput=file:/home/{{ linux_user }}/minecraft/logs/service.log
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+- name: Load Balancer Test
+  hosts: minecraft#role=loadbalancer
+  tasks:
+    - name: Ping Load Balancer
+      ansible.builtin.ping:
+
+- name: Minecraft Test
+  hosts: minecraft#role=minecraft
+  tasks:
+    - name: Ping Minecraft
+      ansible.builtin.ping:

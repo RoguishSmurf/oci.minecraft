@@ -6,3 +6,5 @@
 2. Run the `create_bucket.sh` to create state bucket for Terraform
 3. Build the project
     * `terraform apply`
+
+4. Run the Ansible playbooks to configure servers

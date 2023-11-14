@@ -1,0 +1,13 @@
+packages: ["jdk-17-headless"]
+linux_user: opc
+server_base: "/home/{{ linux_user }}/minecraft"
+server_dirs: ["server", "tools", "backup", "logs"]
+paper_jar: paper.jar
+paper_url: https://api.papermc.io/v2/projects/paper/versions/1.20.2/builds/291/downloads/paper-1.20.2-291.jar
+paper_checksum: sha256:19ad9f9a0078a0c0f240b01edbf6b7956513d374291ee90c36bbb5efa5732e70
+session_name: mcserver
+mcrcon_url: https://github.com/Tiiffi/mcrcon/releases/download/v0.7.2/mcrcon-0.7.2-linux-x86-64.tar.gz
+mcrcon_checksum: sha256:c1883c3f6610c751c935f4faefbf2c52f704a0f71013be2928972eef5918cb68
+mcrcon_tarball: mcrcon.tar.gz
+rcon_pwd: superstrongpassword
+rcon_port: 25575
