@@ -22,3 +22,13 @@ resource "oci_identity_tag" "role" {
         values = ["loadbalancer", "minecraft"]
     }
 }
+
+resource "oci_identity_tag" "game" {
+    description = "Game"
+    name = "game"
+    tag_namespace_id = oci_identity_tag_namespace.minecraft_tags_ns.id
+    validator {
+        validator_type = "ENUM"
+        values = ["lobby", "survival", "dev"]
+    }
+}

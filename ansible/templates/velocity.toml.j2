@@ -1,0 +1,69 @@
+config-version = "2.6"
+bind = "0.0.0.0:{{ proxy_port }}"
+motd = "<#09add3>An Ivycraft Server"
+show-max-players = 500
+online-mode = true
+force-key-authentication = true
+prevent-client-proxy-connections = false
+
+# Should we forward IP addresses and other data to backend servers?
+# Available options:
+# - "none":        No forwarding will be done. All players will appear to be connecting
+#                  from the proxy and will have offline-mode UUIDs.
+# - "legacy":      Forward player IPs and UUIDs in a BungeeCord-compatible format. Use this
+#                  if you run servers using Minecraft 1.12 or lower.
+# - "bungeeguard": Forward player IPs and UUIDs in a format supported by the BungeeGuard
+#                  plugin. Use this if you run servers using Minecraft 1.12 or lower, and are
+#                  unable to implement network level firewalling (on a shared host).
+# - "modern":      Forward player IPs and UUIDs as part of the login process using
+#                  Velocity's native forwarding. Only applicable for Minecraft 1.13 or higher.
+player-info-forwarding-mode = "modern"
+forwarding-secret-file = "forwarding.secret"
+announce-forge = true
+kick-existing-players = false
+
+# Should Velocity pass server list ping requests to a backend server?
+# Available options:
+# - "disabled":    No pass-through will be done. The velocity.toml and server-icon.png
+#                  will determine the initial server list ping response.
+# - "mods":        Passes only the mod list from your backend server into the response.
+#                  The first server in your try list (or forced host) with a mod list will be
+#                  used. If no backend servers can be contacted, Velocity won't display any
+#                  mod information.
+# - "description": Uses the description and mod list from the backend server. The first
+#                  server in the try (or forced host) list that responds is used for the
+#                  description and mod list.
+# - "all":         Uses the backend server's response as the proxy response. The Velocity
+#                  configuration is used if no servers could be contacted.
+ping-passthrough = "mods"
+enable-player-address-logging = true
+
+[servers] 
+gameserver = "localhost:{{ minecraft_port }}"
+try = [
+    "gameserver"
+]
+
+[forced-hosts]
+
+[advanced]
+compression-threshold = 256
+compression-level = -1
+login-ratelimit = 3000
+connection-timeout = 5000
+read-timeout = 30000
+haproxy-protocol = true
+tcp-fast-open = true
+bungee-plugin-message-channel = true
+show-ping-requests = false
+failover-on-unexpected-server-disconnect = true
+announce-proxy-commands = false
+log-command-executions = false
+log-player-connections = true
+
+[query]
+enabled = false
+port = {{ proxy_port }}
+map = "Velocity"
+show-plugins = false
+

@@ -1,0 +1,12 @@
+[Unit]
+Description=Minecraft Proxy
+After=network.target
+
+[Service]
+WorkingDirectory=/home/{{ linux_user }}/minecraft/proxy
+ExecStart=/usr/bin/java -Xms1G -Xmx1G -XX:+UseG1GC -XX:G1HeapRegionSize=4M -XX:+UnlockExperimentalVMOptions -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch -XX:MaxInlineLevel=15 -jar velocity.jar
+Restart=on-failure
+StandardOutput=file:/home/{{ linux_user }}/minecraft/logs/proxy.log
+
+[Install]
+WantedBy=multi-user.target

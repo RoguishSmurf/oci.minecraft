@@ -1,8 +1,12 @@
 ---
+# ################
+# Install Software
+# ################
 - name: Install Software
   hosts: minecraft#role=minecraft
   vars_files:
     - vars/minecraft_vars.yml 
+
   tasks:
   - name: Install Packages
     ansible.builtin.package:
@@ -10,88 +14,163 @@
       state: latest
     loop: "{{ packages }}"
     become: yes
+
   - name: Verify JDK Version
     ansible.builtin.command: java --version
     register: java_version
     changed_when: false
+
   - name: Report JDK Version
     ansible.builtin.debug: 
       var: java_version.stdout_lines[0]
+
   - name: Create Server Directories
     ansible.builtin.file:
       path: "{{ server_base }}/{{ item }}"
       state: directory
     loop: "{{ server_dirs }}"
+
   - name: Download Paper
     ansible.builtin.get_url:
       url: "{{ paper_url }}"
       dest: "{{ server_base }}/server/{{ paper_jar }}"
       checksum: "{{ paper_checksum }}"
+
+  - name: Download Velocity
+    ansible.builtin.get_url:
+      url: "{{ velocity_url }}"
+      dest: "{{ server_base }}/proxy/{{ velocity_jar }}"
+      checksum: "{{ velocity_checksum }}"
+
   - name: Download mcrcon
     ansible.builtin.get_url:
       url: "{{ mcrcon_url }}"
       dest: "{{ server_base }}/tools/{{ mcrcon_tarball }}"
       checksum: "{{ mcrcon_checksum }}"
+
   - name: Extract mcrcon
     ansible.builtin.unarchive:
       src: "{{ server_base }}/tools/{{ mcrcon_tarball }}"
       dest: "{{ server_base }}/tools/"
       remote_src: yes
-    
-- name: Set Config Files
+
+# ###################
+# Configure Minecraft
+# ###################
+- name: Configure Minecraft
   hosts: minecraft#role=minecraft
   vars_files:
     - vars/minecraft_vars.yml 
+
   tasks:
-  - name: server.properties - Add rcon port
-    ansible.builtin.lineinfile:
-      path: "{{ server_base }}/server/server.properties"
-      line: "rcon.port={{ rcon_port }}"
-      state: present
-  - name: server.properties - Add rcon pwd
-    ansible.builtin.lineinfile:
-      path: "{{ server_base }}/server/server.properties"
-      line: "rcon.password={{ rcon_pwd }}"
-      state: present
-  - name: server.properties - Enable rcon
-    ansible.builtin.lineinfile:
-      path: "{{ server_base }}/server/server.properties"
-      line: "enable-rcon=true"
-      state: present
   - name: Agree to EULA
     ansible.builtin.template:
       src: templates/eula.txt.j2
       dest:  "{{ server_base }}/server/eula.txt"
-    
-- name: Configure systemd and Firewall
-  hosts: minecraft#role=minecraft
-  vars_files:
-    - vars/minecraft_vars.yml 
-  tasks:
-  - name: Create systemd Unit File
+
+  - name: Create server.properties
+    ansible.builtin.file:
+      path: "{{ server_base }}/server/server.properties"
+      state: touch
+    changed_when: false
+
+  - name: Update server.properties 
+    community.general.ini_file:
+      path: "{{ server_base }}/server/server.properties"
+      option: "{{ item.key }}"
+      value: "{{ item.value }}"
+    loop: "{{ server_properties | dict2items }}"
+    notify: restart minecraft
+
+  - name: Create paper.yml
+    ansible.builtin.file:
+      path: "{{ server_base }}/server/config/paper-general.yml"
+      state: touch
+    changed_when: false
+
+  - name: Update paper.yml
+    community.general.ini_file:
+      path: "{{ server_base }}/server/config/paper-global.yml"
+      option: "{{ item.key }}"
+      value: "{{ item.value }}"
+    loop: "{{ paper_properties | dict2items }}"
+    notify: restart minecraft
+
+  - name: Create Proxy Files
+    ansible.builtin.command:
+      cmd: "echo shutdown | java -jar velocity.jar"
+      chdir: "{{ server_base }}/proxy"
+      creates: "{{ server_base }}/proxy/velocity.toml"
+
+  - name: Set Proxy Secret
+    ansible.builtin.template:
+      src: "templates/forwarding.secret.j2"
+      dest: "{{ server_base }}/proxy/forwarding.secret"
+
+  - name: Configure Velocity
+    ansible.builtin.template:
+      src: templates/velocity.toml.j2
+      dest: "{{ server_base }}/proxy/velocity.toml"
+    notify: restart proxy
+
+  - name: Create systemd Minecraft Unit File
     ansible.builtin.template:
       src: templates/systemd.minecraft.j2
       dest: /etc/systemd/user/minecraft.service
     become: yes
+    notify: restart minecraft
+
   - name: Enable systemd Minecraft Service
     ansible.builtin.service: 
       name: minecraft.service
       scope: user
       enabled: yes
     changed_when: false
-  - name: Start Minecraft
-    ansible.builtin.systemd:
-      name: minecraft.service
-      state: started
+    notify: restart minecraft
+
+  - name: Create systemd Proxy Unit File
+    ansible.builtin.template:
+      src: templates/systemd.proxy.j2
+      dest: /etc/systemd/user/proxy.service
+    become: yes
+    notify: restart proxy
+
+  - name: Enable systemd Proxy Service
+    ansible.builtin.service: 
+      name: proxy.service
       scope: user
+      enabled: yes
+    changed_when: false
+    notify: restart proxy
+
+  - name: "Enable linger for {{ linux_user }}"
+    ansible.builtin.shell:
+      cmd: "loginctl enable-linger {{ linux_user }}"
+    become: yes
+
   - name: Open Firewall
     ansible.posix.firewalld:
-      port: "{{ minecraft_port }}/tcp"
+      port: "{{ proxy_port }}/tcp"
       permanent: true
       state: enabled
       immediate: yes
     become: yes
 
+  handlers:
+  - name: restart minecraft
+    ansible.builtin.systemd:
+      name: minecraft.service
+      state: restarted
+      scope: user
+  - name: restart proxy
+    ansible.builtin.systemd:
+      name: proxy.service
+      state: restarted
+      scope: user
+
+# #######
+# Backups
+# #######
 - name: Schedule Backups
   hosts: minecraft#role=minecraft
   vars_files:
@@ -113,3 +192,20 @@
       src: templates/console.sh.j2
       dest: "{{ server_base }}/console.sh"
       mode: '0755'
+
+# #####
+# Start
+# #####
+- name: Start Servers
+  hosts: minecraft#role=minecraft
+  tasks:
+  - name: start minecraft
+    ansible.builtin.systemd:
+      name: minecraft.service
+      state: started
+      scope: user
+  - name: start proxy
+    ansible.builtin.systemd:
+      name: proxy.service
+      state: started
+      scope: user

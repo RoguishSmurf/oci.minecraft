@@ -30,6 +30,7 @@ frontend minecraft
 
 backend minecraft
     balance roundrobin
+    option tcp-check
 {% for i in groups['minecraft#role=minecraft'] %}    
-    server mc{{ loop.index }} {{ i }}:{{ minecraft_port }} check
+    server mc{{ loop.index }} {{ i }}:{{ proxy_port }} check-send-proxy check send-proxy-v2
 {% endfor %}

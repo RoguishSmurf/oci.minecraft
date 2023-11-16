@@ -1,14 +1,38 @@
+# OS Setup
 packages: ["jdk-17-headless"]
 linux_user: opc
-minecraft_port: 25565
 server_base: "/home/{{ linux_user }}/minecraft"
-server_dirs: ["server", "tools", "backup", "logs"]
+server_dirs: ["server", "tools", "backup", "logs", "proxy"]
+
+# Minecraft
 paper_jar: paper.jar
 paper_url: https://api.papermc.io/v2/projects/paper/versions/1.20.2/builds/291/downloads/paper-1.20.2-291.jar
 paper_checksum: sha256:19ad9f9a0078a0c0f240b01edbf6b7956513d374291ee90c36bbb5efa5732e70
-session_name: mcserver
+minecraft_port: 25565
+secretphrase: superstrongpassword
+
+server_properties:
+  online-mode:    false
+  rcon.port:      "{{ rcon_port }}"
+  rcon.password:  "{{ rcon_pwd }}"
+  enable-rcon:    true
+
+paper_properties:
+  proxies.velocity.enabled: true
+  proxies.velocity.secret: "{{ secretphrase }}"
+  proxies.velocity.online-mode: true
+  proxies.bungee-cord.online-mode: false
+
+# Proxy
+velocity_url: https://api.papermc.io/v2/projects/velocity/versions/3.2.0-SNAPSHOT/builds/294/downloads/velocity-3.2.0-SNAPSHOT-294.jar
+velocity_jar: velocity.jar
+velocity_checksum: sha256:8e5a4228988b2906c5132cfd5d526b7b708d77a8a536528d8cc4c09092097dec
+proxy_port: 25577
+
+# Remote Console
 mcrcon_url: https://github.com/Tiiffi/mcrcon/releases/download/v0.7.2/mcrcon-0.7.2-linux-x86-64.tar.gz
 mcrcon_checksum: sha256:c1883c3f6610c751c935f4faefbf2c52f704a0f71013be2928972eef5918cb68
 mcrcon_tarball: mcrcon.tar.gz
-rcon_pwd: superstrongpassword
+rcon_pwd: "{{ secretphrase }}"
 rcon_port: 25575
+

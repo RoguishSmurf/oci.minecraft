@@ -1,2 +1,3 @@
 packages: ["haproxy"]
 minecraft_port: 25565
+proxy_port: 25577

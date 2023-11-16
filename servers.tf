@@ -95,5 +95,8 @@ resource "oci_core_instance" "minecraft" {
       ignore_changes = [source_details, metadata]
     }
 
-	defined_tags = { "minecraft.role" = "minecraft" }
+	defined_tags = { 
+        "minecraft.role" = "minecraft", 
+        "minecraft.game" = "lobby"
+        }
 }

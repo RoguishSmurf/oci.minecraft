@@ -157,8 +157,26 @@ resource "oci_core_network_security_group_security_rule" "minecraft_from_dmz" {
     source            = "192.168.0.0/24" # DMZ
     tcp_options {
         destination_port_range {
-        min = "25565"
-        max = "25565"
+            min = "25565"
+            max = "25565"
+        }
+    }
+}
+
+resource "oci_core_network_security_group_security_rule" "proxy_from_dmz" {
+    # Required
+    network_security_group_id = oci_core_network_security_group.minecraft_app.id
+    direction         = "INGRESS"
+    protocol          = "6"
+    # Optional
+    description       = "minecraft-from-dmz"
+    destination       = "192.168.1.0/24" # App
+    # destination_type  = "CIDR_BLOCK" # Optional on Ingress
+    source            = "192.168.0.0/24" # DMZ
+    tcp_options {
+        destination_port_range {
+            min = "25577"
+            max = "25577"
         }
     }
 }
