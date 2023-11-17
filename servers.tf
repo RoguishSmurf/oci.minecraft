@@ -97,6 +97,5 @@ resource "oci_core_instance" "minecraft" {
 
 	defined_tags = { 
         "minecraft.role" = "minecraft", 
-        "minecraft.game" = "lobby"
         }
 }
