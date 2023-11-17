@@ -68,32 +68,16 @@
       src: templates/eula.txt.j2
       dest:  "{{ server_base }}/server/eula.txt"
 
-  - name: Create server.properties
-    ansible.builtin.file:
-      path: "{{ server_base }}/server/server.properties"
-      state: touch
-    changed_when: false
-
   - name: Update server.properties 
-    community.general.ini_file:
-      path: "{{ server_base }}/server/server.properties"
-      option: "{{ item.key }}"
-      value: "{{ item.value }}"
-    loop: "{{ server_properties | dict2items }}"
+    ansible.builtin.template:
+      src: config/server.properties.j2
+      dest: "{{ server_base }}/server/server.properties"
     notify: restart minecraft
 
-  - name: Create paper.yml
-    ansible.builtin.file:
-      path: "{{ server_base }}/server/config/paper-general.yml"
-      state: touch
-    changed_when: false
-
   - name: Update paper.yml
-    community.general.ini_file:
-      path: "{{ server_base }}/server/config/paper-global.yml"
-      option: "{{ item.key }}"
-      value: "{{ item.value }}"
-    loop: "{{ paper_properties | dict2items }}"
+    ansible.builtin.template:
+      src: config/paper-global.yml.j2
+      dest: "{{ server_base }}/server/config/paper-global.yml"
     notify: restart minecraft
 
   - name: Create Proxy Files

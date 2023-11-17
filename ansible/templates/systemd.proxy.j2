@@ -6,6 +6,8 @@ After=network.target
 WorkingDirectory=/home/{{ linux_user }}/minecraft/proxy
 ExecStart=/usr/bin/java -Xms1G -Xmx1G -XX:+UseG1GC -XX:G1HeapRegionSize=4M -XX:+UnlockExperimentalVMOptions -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch -XX:MaxInlineLevel=15 -jar velocity.jar
 Restart=on-failure
+RestartSec=10
+Type=simple
 StandardOutput=file:/home/{{ linux_user }}/minecraft/logs/proxy.log
 
 [Install]

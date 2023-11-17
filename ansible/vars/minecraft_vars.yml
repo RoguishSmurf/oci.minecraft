@@ -11,18 +11,6 @@ paper_checksum: sha256:19ad9f9a0078a0c0f240b01edbf6b7956513d374291ee90c36bbb5efa
 minecraft_port: 25565
 secretphrase: superstrongpassword
 
-server_properties:
-  online-mode:    false
-  rcon.port:      "{{ rcon_port }}"
-  rcon.password:  "{{ rcon_pwd }}"
-  enable-rcon:    true
-
-paper_properties:
-  proxies.velocity.enabled: true
-  proxies.velocity.secret: "{{ secretphrase }}"
-  proxies.velocity.online-mode: true
-  proxies.bungee-cord.online-mode: false
-
 # Proxy
 velocity_url: https://api.papermc.io/v2/projects/velocity/versions/3.2.0-SNAPSHOT/builds/294/downloads/velocity-3.2.0-SNAPSHOT-294.jar
 velocity_jar: velocity.jar

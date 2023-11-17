@@ -35,11 +35,11 @@ kick-existing-players = false
 #                  description and mod list.
 # - "all":         Uses the backend server's response as the proxy response. The Velocity
 #                  configuration is used if no servers could be contacted.
-ping-passthrough = "mods"
+ping-passthrough = "description"
 enable-player-address-logging = true
 
 [servers] 
-gameserver = "localhost:{{ minecraft_port }}"
+gameserver = "127.0.0.1:{{ minecraft_port }}"
 try = [
     "gameserver"
 ]
