@@ -53,6 +53,13 @@ resource "oci_core_instance" "bastion" {
     defined_tags = { "minecraft.role" = "loadbalancer" }
 }
 
+resource "null_resource" "loadbalancer_provision" {
+    depends_on = [oci_core_instance.bastion]
+    provisioner "local-exec" {
+        command = "ansible-playbook -i ansible/inventory.oci.yml ansible/haproxy.yml"
+    }
+}
+
 output "bastion_public_ip" {
     value = oci_core_instance.bastion.public_ip
 }
@@ -97,5 +104,12 @@ resource "oci_core_instance" "minecraft" {
 
 	defined_tags = { 
         "minecraft.role" = "minecraft", 
-        }
+    }
+}
+
+resource "null_resource" "minecraft_provision" {
+    depends_on = [oci_core_instance.minecraft]
+    provisioner "local-exec" {
+        command = "ansible-playbook -i ansible/inventory.oci.yml ansible/minecraft.yml"
+    }
 }

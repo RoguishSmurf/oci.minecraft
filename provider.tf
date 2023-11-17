@@ -19,10 +19,6 @@ variable "namespace" {
 terraform {
   backend "s3" {}
   required_providers {
-    ansible = {
-      source = "ansible/ansible"
-      version = "1.1.0"
-    }
     oci = {
       source = "oracle/oci"
       version = "5.18.0"
@@ -30,6 +26,10 @@ terraform {
     tls = {
       source = "hashicorp/tls"
       version = "4.0.4"
+    }
+    null = {
+      source = "hashicorp/null"
+      version = "3.2.1"
     }
   }
 }
