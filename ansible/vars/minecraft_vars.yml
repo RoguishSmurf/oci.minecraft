@@ -9,7 +9,6 @@ paper_jar: paper.jar
 paper_url: https://api.papermc.io/v2/projects/paper/versions/1.20.2/builds/291/downloads/paper-1.20.2-291.jar
 paper_checksum: sha256:19ad9f9a0078a0c0f240b01edbf6b7956513d374291ee90c36bbb5efa5732e70
 minecraft_port: 25565
-secretphrase: superstrongpassword
 
 # Proxy
 velocity_url: https://api.papermc.io/v2/projects/velocity/versions/3.2.0-SNAPSHOT/builds/294/downloads/velocity-3.2.0-SNAPSHOT-294.jar

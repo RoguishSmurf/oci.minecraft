@@ -1,0 +1,3 @@
+[
+  "allow dynamic-group 'ansiblevault-access-group' to read secret-family in tenancy  where target.secret.name = 'ansiblevault'"
+]

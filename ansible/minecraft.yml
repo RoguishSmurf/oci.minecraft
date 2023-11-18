@@ -60,7 +60,8 @@
 - name: Configure Minecraft
   hosts: minecraft#role=minecraft
   vars_files:
-    - vars/minecraft_vars.yml 
+    - vars/minecraft_vars.yml
+    - vars/secrets.yml
 
   tasks:
   - name: Agree to EULA
@@ -158,7 +159,8 @@
 - name: Schedule Backups
   hosts: minecraft#role=minecraft
   vars_files:
-    - vars/minecraft_vars.yml 
+    - vars/minecraft_vars.yml
+    - vars/secrets.yml
   tasks:
   - name: Create Backup Script
     ansible.builtin.template:
