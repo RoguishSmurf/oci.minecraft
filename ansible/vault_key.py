@@ -28,7 +28,12 @@ def read_secret_value(secret_client, secret_id):
     return secret_content
 
 
-secret_id = sys.argv[1]
+if 'ANSIBLE_VAULT_SECRET_ID' in os.environ:
+    secret_id = os.environ['ANSIBLE_VAULT_SECRET_ID']
+else:
+    print('ANSIBLE_VAULT_SECRET_ID environment variable must be set')
+    exit(1)
+
 secret_client = oci.secrets.SecretsClient(config)
 secret_contents = read_secret_value(secret_client, secret_id)
 print(format(secret_contents))
