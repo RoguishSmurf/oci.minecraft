@@ -8,16 +8,24 @@ echo "Creating Vault"
 VAULT_ID=$(oci kms management vault create \
     --compartment-id ${OCI_TENANCY} \
     --display-name ${VAULTNAME} \
-    --vault-type=default | jq -r '.data.id')
+    --vault-type=default \
+    --wait-for-state ACTIVE | jq -r '.data.id')
 echo "  Vault ID: ${VAULT_ID}"
 ENDPOINT_ID=$(oci kms management vault get \
     --vault-id ${VAULT_ID} | jq -r '.data."management-endpoint"')
 echo "  Endpoint: ${ENDPOINT_ID}"
+
+# while vault is active, endpoint can take extra time to become available
+echo "Waiting for endpoint to become active"
+sleep 60
+
+echo "Creating Vault Master Key"
 KEY_ID=$(oci kms management key create \
     --compartment-id ${OCI_TENANCY} \
     --display-name "${VAULTNAME}-key" \
     --key-shape '{"algorithm":"AES","length":"16"}' \
-    --endpoint ${ENDPOINT_ID} | jq -r '.data.id')
+    --endpoint ${ENDPOINT_ID} \
+    --wait-for-state ENABLED | jq -r '.data.id')
 echo "  Encryption Key ID: ${KEY_ID}"
 
 echo "Creating Secret"
@@ -31,9 +39,10 @@ SECRET_ID=$(oci vault secret create-base64 \
     --secret-content-content ${SECRET_BASE64} \
     --secret-content-name ${SECRETNAME} \
     --secret-content-stage CURRENT \
-    --watif-for-state ACTIVE | jq -r '.data.id')
-echo "export ANSIBLE_VAULT_SECRET_ID=${SECRET_ID}" | tee -a ~/.bashrc
-source ~/.bashrc
+    --wait-for-state ACTIVE | jq -r '.data.id')
+echo "Setting ANSIBLE_VAULT_SECRET_ID environment variable"
+echo "export ANSIBLE_VAULT_SECRET_ID=${SECRET_ID}" | tee -a ~/.bashrc > /dev/null
+source ~/.bashrc > /dev/null
 echo "  Secret ID: ${SECRET_ID}"
 
 echo "Creating Dynamic Group and Policy"
@@ -55,3 +64,5 @@ oci iam policy create \
     --name "${SECRETNAME}-access-policy" \
     --statements file://vaultpolicy.json 
 
+echo "Anbile Vault master password is now stored in OCI Vault."
+echo "  Use the script ansible/vault_key.py to retrive the password."
