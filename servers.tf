@@ -11,6 +11,7 @@ data "oci_core_images" "linux_images" {
     operating_system_version = "8"
     sort_by                  = "TIMECREATED"
     sort_order               = "DESC"
+    shape                    = var.shape
 }
 
 resource "tls_private_key" "public_private_key_pair" {
