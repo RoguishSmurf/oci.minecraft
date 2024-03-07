@@ -74,6 +74,11 @@
       dest: "{{ server_base }}/server/server.properties"
     notify: restart minecraft
 
+  - name: Create config directory
+    ansible.builtin..file:
+      path: "{{ server_base }}/server/config"
+      state: directory
+
   - name: Update paper.yml
     ansible.builtin.template:
       src: config/paper-global.yml.j2
