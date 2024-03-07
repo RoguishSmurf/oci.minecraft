@@ -75,7 +75,7 @@
     notify: restart minecraft
 
   - name: Create config directory
-    ansible.builtin..file:
+    ansible.builtin.file:
       path: "{{ server_base }}/server/config"
       state: directory
 
