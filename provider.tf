@@ -7,7 +7,7 @@ variable "region" {}
 variable "tenancy_id" {}
 
 data "oci_identity_availability_domains" "ads" {
-  compartment_id = var.tenancy_id
+    compartment_id = var.tenancy_id
 }
 
 output "ads" {
